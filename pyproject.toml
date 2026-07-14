@@ -1,0 +1,35 @@
+[project]
+name = "unicommerce"
+description = "Standalone Unicommerce integration for ERPNext"
+authors = [
+    { name = "Aerele", email = "developers@aerele.in" }
+]
+requires-python = ">=3.10"
+readme = "./README.md"
+dynamic = ["version"]
+dependencies = []
+
+[project.license]
+file = "./license.txt"
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "UP", "B", "RUF"]
+ignore = ["B017","B018","B023","B904","E101","E402","E501","E741","F401","F403","F405","F722","W191","RUF001"]
+typing-modules = ["frappe.types.DF"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "tab"
+docstring-code-format = true
+
+[tool.bench.frappe-dependencies]
+frappe = ">=16.0.0-dev,<=17.0.0-dev"
+erpnext = ">=16.0.0-dev,<=17.0.0-dev"
