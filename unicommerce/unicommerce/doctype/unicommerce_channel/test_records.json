@@ -1,0 +1,43 @@
+[
+	{
+		"doctype": "Unicommerce Channel",
+		"display_name": "amazon",
+		"channel_id": "RAINFOREST",
+		"enabled": 1,
+		"company": "Wind Power LLC",
+		"warehouse": "Stores - WP",
+		"return_warehouse": "Stores - WP",
+		"customer_group": "Individual",
+		"fnf_account": "Freight and Forwarding Charges - WP",
+		"cod_account": "Freight and Forwarding Charges - WP",
+		"igst_account": "Output Tax GST - WP",
+		"cgst_account": "Output Tax GST - WP",
+		"sgst_account": "Output Tax GST - WP",
+		"ugst_account": "Output Tax GST - WP",
+		"tcs_account": "Output Tax GST - WP",
+		"cost_center": "Main - WP",
+		"cash_or_bank_account": "Cash - WP",
+		"gift_wrap_account": "Miscellaneous Expenses - WP",
+		"shipping_handled_by_marketplace": 0
+	},
+	{
+		"doctype": "Unicommerce Channel",
+		"display_name": "custom",
+		"channel_id": "CUSTOM_FF_TEST",
+		"enabled": 1,
+		"company": "Wind Power LLC",
+		"warehouse": "Stores - WP",
+		"return_warehouse": "Stores - WP",
+		"customer_group": "Individual",
+		"fnf_account": "Freight and Forwarding Charges - WP",
+		"cod_account": "Freight and Forwarding Charges - WP",
+		"igst_account": "Output Tax GST - WP",
+		"cgst_account": "Output Tax GST - WP",
+		"sgst_account": "Output Tax GST - WP",
+		"ugst_account": "Output Tax GST - WP",
+		"tcs_account": "Output Tax GST - WP",
+		"cost_center": "Main - WP",
+		"cash_or_bank_account": "Cash - WP",
+		"gift_wrap_account": "Miscellaneous Expenses - WP"
+	}
+]
