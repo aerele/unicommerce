@@ -2,6 +2,7 @@ import json
 from typing import Any
 
 import frappe
+from ecommerce_core.utils.address_mapping import map_country_and_state
 from frappe import _
 from frappe.utils.nestedset import get_root_of
 
@@ -9,8 +10,6 @@ from unicommerce.unicommerce.constants import (
 	ADDRESS_JSON_FIELD,
 	CUSTOMER_CODE_FIELD,
 	SETTINGS_DOCTYPE,
-	UNICOMMERCE_COUNTRY_MAPPING,
-	UNICOMMERCE_INDIAN_STATES_MAPPING,
 )
 
 
@@ -94,11 +93,7 @@ def _create_customer_addresses(addresses: list[dict[str, Any]], customer) -> Non
 
 def _create_customer_address(uni_address, address_type, customer, also_shipping=False):
 	country_code = uni_address.get("country")
-	country = UNICOMMERCE_COUNTRY_MAPPING.get(country_code)
-
-	state = uni_address.get("state")
-	if country_code == "IN" and state in UNICOMMERCE_INDIAN_STATES_MAPPING:
-		state = UNICOMMERCE_INDIAN_STATES_MAPPING.get(state)
+	country, state = map_country_and_state(country_code, uni_address.get("state"))
 
 	frappe.get_doc(
 		{
