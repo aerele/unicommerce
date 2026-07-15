@@ -1,0 +1,139 @@
+{
+ "app": "unicommerce",
+ "charts": [],
+ "content": "[{\"id\": \"uni_header_1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Unicommerce</b></span>\", \"col\": 12}}, {\"id\": \"uni_card_settings\", \"type\": \"card\", \"data\": {\"card_name\": \"Settings\", \"col\": 4}}, {\"id\": \"uni_card_ops\", \"type\": \"card\", \"data\": {\"card_name\": \"Operations\", \"col\": 4}}, {\"id\": \"uni_card_logs\", \"type\": \"card\", \"data\": {\"card_name\": \"Masters & Logs\", \"col\": 4}}]",
+ "creation": "2026-07-11 00:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "shopping-bag",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Unicommerce",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Settings",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Unicommerce Settings",
+   "link_count": 0,
+   "link_to": "Unicommerce Settings",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Unicommerce Channel",
+   "link_count": 0,
+   "link_to": "Unicommerce Channel",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Unicommerce Package Type",
+   "link_count": 0,
+   "link_to": "Unicommerce Package Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Unicommerce Shipping Method",
+   "link_count": 0,
+   "link_to": "Unicommerce Shipping Method",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Unicommerce Shipping Provider",
+   "link_count": 0,
+   "link_to": "Unicommerce Shipping Provider",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Operations",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Unicommerce Shipment Manifest",
+   "link_count": 0,
+   "link_to": "Unicommerce Shipment Manifest",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Masters & Logs",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Ecommerce Item",
+   "link_count": 0,
+   "link_to": "Ecommerce Item",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Ecommerce Integration Log",
+   "link_count": 0,
+   "link_to": "Ecommerce Integration Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-07-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "unicommerce",
+ "name": "Unicommerce",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 20.0,
+ "shortcuts": [],
+ "standard": 1,
+ "title": "Unicommerce",
+ "type": "Workspace"
+}
