@@ -190,11 +190,12 @@ def update_invoicing_status(sales_orders: list[str], status: str) -> None:
 	if not sales_orders:
 		return
 
+	# `sales_orders` may be a set/list; coerce to a tuple so `IN %s` formats to valid SQL.
 	frappe.db.sql(
 		f"""update `tabSales Order`
 			set {ORDER_INVOICE_STATUS_FIELD} = %s
 			where name in %s""",
-		(status, sales_orders),
+		(status, tuple(sales_orders)),
 	)
 
 
