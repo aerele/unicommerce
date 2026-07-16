@@ -14,6 +14,10 @@ from unicommerce.unicommerce.constants import (
 from unicommerce.unicommerce.invoice import bulk_generate_invoices, create_sales_invoice
 from unicommerce.unicommerce.order import create_order, get_taxes
 from unicommerce.unicommerce.tests.test_client import TestCaseApiClient
+from unicommerce.unicommerce.tests.utils import (
+	allow_multi_currency_invoicing,
+	allow_repeated_line_items,
+)
 
 
 class TestUnicommerceInvoice(TestCaseApiClient):
@@ -57,6 +61,8 @@ class TestUnicommerceInvoice(TestCaseApiClient):
 		)
 		self.assertGreaterEqual(len(attachments), 2, msg=f"Expected 2 attachments, found: {attachments!s}")
 
+	@allow_repeated_line_items
+	@allow_multi_currency_invoicing
 	def test_end_to_end_invoice_generation(self):
 		"""Full invoice generation test with mocked responses."""
 
