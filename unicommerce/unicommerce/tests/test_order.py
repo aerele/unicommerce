@@ -16,6 +16,7 @@ from unicommerce.unicommerce.order import (
 	create_order,
 )
 from unicommerce.unicommerce.tests.test_client import TestCaseApiClient
+from unicommerce.unicommerce.tests.utils import allow_repeated_line_items
 
 
 class TestUnicommerceOrder(TestCaseApiClient):
@@ -94,6 +95,7 @@ class TestUnicommerceOrder(TestCaseApiClient):
 		self.assertEqual(so.get(ORDER_CODE_FIELD), order["code"])
 		self.assertEqual(so.get(ORDER_STATUS_FIELD), order["status"])
 
+	@allow_repeated_line_items
 	def test_create_order_multiple_items(self):
 		order = self.load_fixture("order-SO5906")["saleOrderDTO"]
 
