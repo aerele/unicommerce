@@ -190,13 +190,14 @@ def update_invoicing_status(sales_orders: list[str], status: str) -> None:
 	if not sales_orders:
 		return
 
-	# `sales_orders` may be a set/list; coerce to a tuple so `IN %s` formats to valid SQL.
-	frappe.db.sql(
-		f"""update `tabSales Order`
-			set {ORDER_INVOICE_STATUS_FIELD} = %s
-			where name in %s""",
-		(status, tuple(sales_orders)),
-	)
+	# Use the query builder: it parameterizes safely and accepts any iterable
+	# (list/set) for the IN clause, avoiding raw-SQL string interpolation.
+	so = frappe.qb.DocType("Sales Order")
+	(
+		frappe.qb.update(so)
+		.set(so[ORDER_INVOICE_STATUS_FIELD], status)
+		.where(so.name.isin(list(sales_orders)))
+	).run()
 
 
 def _validate_wh_allocation(warehouse_allocation: WHAllocation):
