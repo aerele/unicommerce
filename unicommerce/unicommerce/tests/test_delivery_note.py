@@ -1,5 +1,6 @@
 import base64
 import unittest
+from typing import ClassVar
 
 import frappe
 import responses
@@ -15,13 +16,22 @@ from unicommerce.unicommerce.delivery_note import create_delivery_note
 from unicommerce.unicommerce.invoice import bulk_generate_invoices, create_sales_invoice
 from unicommerce.unicommerce.order import create_order
 from unicommerce.unicommerce.tests.test_client import TestCaseApiClient
+from unicommerce.unicommerce.tests.utils import (
+	allow_multi_currency_invoicing,
+	allow_repeated_line_items,
+)
 
 
 class TestDeliveryNote(TestCaseApiClient):
+	# Defer stock to the Delivery Note so the Sales Order stays deliverable.
+	config: ClassVar = {**TestCaseApiClient.config, "delivery_note": 1}
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 
+	@allow_repeated_line_items
+	@allow_multi_currency_invoicing
 	def test_create_invoice_and_delivery_note(self):
 		"""Use mocked invoice json to create and assert synced fields"""
 		from unicommerce.unicommerce import invoice
