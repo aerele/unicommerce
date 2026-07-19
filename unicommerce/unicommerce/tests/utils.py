@@ -4,12 +4,25 @@ import os
 from typing import ClassVar
 
 import frappe
-from frappe.tests import IntegrationTestCase
+from frappe.tests import IntegrationTestCase, change_settings
 
 from unicommerce.unicommerce.constants import PRODUCT_CATEGORY_FIELD, SETTINGS_DOCTYPE
 from unicommerce.unicommerce.doctype.unicommerce_settings.unicommerce_settings import (
 	setup_custom_fields,
 )
+
+
+def allow_multi_currency_invoicing(fn):
+	"""Post INR invoices against the USD test company for the wrapped test only."""
+	return change_settings(
+		"Accounts Settings",
+		{"allow_multi_currency_invoices_against_single_party_account": 1},
+	)(fn)
+
+
+def allow_repeated_line_items(fn):
+	"""Allow the same SKU in multiple rows (Unicommerce lists one row per unit) for one test."""
+	return change_settings("Selling Settings", {"allow_multiple_items": 1})(fn)
 
 
 class TestCase(IntegrationTestCase):
