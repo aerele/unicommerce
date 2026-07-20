@@ -9,6 +9,19 @@ app_color = "grey"
 app_email = "developers@aerele.in"
 app_license = "GNU GPL v3.0"
 required_apps = ["frappe/erpnext", "ecommerce_core"]
+app_logo_url = "/assets/unicommerce/images/unicommerce.svg"
+app_home = "/desk/unicommerce"
+
+# Shown on Desk home (same pattern as ERPNext / India Compliance)
+add_to_apps_screen = [
+	{
+		"name": app_name,
+		"logo": app_logo_url,
+		"title": app_title,
+		"route": app_home,
+		"has_permission": "unicommerce.check_app_permission",
+	}
+]
 
 # Includes in <head>
 # ------------------
@@ -27,6 +40,7 @@ doctype_js = {
 # ------------
 
 after_install = "unicommerce.install.after_install"
+after_migrate = "unicommerce.install.after_migrate"
 before_uninstall = "unicommerce.uninstall.before_uninstall"
 
 # Document Events
