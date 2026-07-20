@@ -5,6 +5,7 @@ from typing import ClassVar
 import frappe
 import responses
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
+from frappe.test_runner import make_test_records
 
 from unicommerce.unicommerce.constants import (
 	FACILITY_CODE_FIELD,
@@ -29,6 +30,9 @@ class TestDeliveryNote(TestCaseApiClient):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		# Create the RAINFOREST channel this test needs instead of relying on
+		# another test to create and commit it first (which made this test flaky).
+		make_test_records("Unicommerce Channel")
 
 	@allow_repeated_line_items
 	@allow_multi_currency_invoicing
