@@ -5,7 +5,6 @@ from datetime import date, datetime
 import frappe
 from erpnext.accounts.doctype.sales_invoice.mapper import make_sales_return
 from erpnext.accounts.services.child_item_update import update_child_qty_rate
-from frappe.utils import now_datetime
 
 from unicommerce.unicommerce.api_client import UnicommerceAPIClient
 from unicommerce.unicommerce.constants import (
@@ -204,7 +203,6 @@ def create_cir_credit_note(so_data, return_data):
 
 	if set(returned_si_items) != set(so_si_item_map.values()):
 		_handle_partial_returns(credit_note, returned_si_items)
-		pass
 
 	credit_note.save()
 

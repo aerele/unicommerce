@@ -20,7 +20,7 @@ from unicommerce.unicommerce.constants import (
 	SETTINGS_DOCTYPE,
 	UNICOMMERCE_SKU_PATTERN,
 )
-from unicommerce.unicommerce.utils import create_unicommerce_log
+from unicommerce.unicommerce.utils import create_unicommerce_log, log_scheduler_errors
 
 ItemCode = NewType("ItemCode", str)
 
@@ -188,6 +188,7 @@ def _get_item_group(category_code):
 	return get_root_of("Item Group")
 
 
+@log_scheduler_errors
 def upload_new_items(force=False) -> None:
 	"""Upload new items to Unicommerce on hourly basis.
 
@@ -218,18 +219,19 @@ def upload_new_items(force=False) -> None:
 
 
 def _get_new_items() -> list[ItemCode]:
-	new_items = frappe.db.sql(
-		f"""
-			SELECT item.item_code
-			FROM tabItem item
-			LEFT JOIN `tabEcommerce Item` ei
-				ON ei.erpnext_item_code = item.item_code
-				WHERE ei.erpnext_item_code is NULL
-					AND item.{ITEM_SYNC_CHECKBOX} = 1
-		"""
+	item = frappe.qb.DocType("Item")
+	ecommerce_item = frappe.qb.DocType("Ecommerce Item")
+
+	query = (
+		frappe.qb.from_(item)
+		.left_join(ecommerce_item)
+		.on(ecommerce_item.erpnext_item_code == item.item_code)
+		.select(item.item_code)
+		.where(ecommerce_item.erpnext_item_code.isnull())
+		.where(item[ITEM_SYNC_CHECKBOX] == 1)
 	)
 
-	return [item[0] for item in new_items]
+	return [row[0] for row in query.run()]
 
 
 def upload_items_to_unicommerce(

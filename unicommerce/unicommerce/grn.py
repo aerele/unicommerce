@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 import frappe
-from erpnext.stock.doctype.batch.batch import Batch
 from frappe import _
 from frappe.utils import cint, getdate
 from frappe.utils.csvutils import UnicodeWriter
@@ -178,13 +177,13 @@ def _prepare_grn_import_csv(stock_entry) -> str:
 		rows.append(row)
 
 	file_name = remove_non_alphanumeric_chars(stock_entry.name)
-	file = save_file(
+	saved_file = save_file(
 		fname=f"GRN-{file_name}.csv",
 		content=_get_csv_content(rows),
 		dt=stock_entry.doctype,
 		dn=stock_entry.name,
 	)
-	return file.file_name
+	return saved_file.file_name
 
 
 def _get_csv_content(rows: list[GRNItemRow]) -> bytes:

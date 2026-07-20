@@ -11,12 +11,14 @@ from frappe.utils import cint, now
 
 from unicommerce.unicommerce.api_client import UnicommerceAPIClient
 from unicommerce.unicommerce.constants import MODULE_NAME, SETTINGS_DOCTYPE
+from unicommerce.unicommerce.utils import log_scheduler_errors
 
 # Note: Undocumented but currently handles ~1000 inventory changes in one request.
 # Remaining to be done in next interval.
 MAX_INVENTORY_UPDATE_IN_REQUEST = 1000
 
 
+@log_scheduler_errors
 def update_inventory_on_unicommerce(client=None, force=False):
 	"""Update ERPnext warehouse wise inventory to Unicommerce.
 
