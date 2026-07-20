@@ -49,7 +49,10 @@ before_uninstall = "unicommerce.uninstall.before_uninstall"
 
 doc_events = {
 	"Item": {
-		"validate": "unicommerce.unicommerce.product.validate_item",
+		"validate": [
+			"ecommerce_core.utils.taxation.validate_tax_template",
+			"unicommerce.unicommerce.product.validate_item",
+		],
 	},
 	"Sales Order": {
 		"on_update_after_submit": "unicommerce.unicommerce.order.update_shipping_info",
