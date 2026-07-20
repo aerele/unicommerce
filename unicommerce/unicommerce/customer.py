@@ -3,7 +3,6 @@ from typing import Any
 
 import frappe
 from ecommerce_core.utils.address_mapping import map_country_and_state
-from frappe import _
 from frappe.utils.nestedset import get_root_of
 
 from unicommerce.unicommerce.constants import (

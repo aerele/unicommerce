@@ -1,4 +1,5 @@
 import datetime
+import functools
 
 import frappe
 from ecommerce_core.ecommerce_core.doctype.ecommerce_integration_log.ecommerce_integration_log import (
@@ -26,10 +27,27 @@ def create_unicommerce_log(**kwargs):
 	return create_log(module_def=MODULE_NAME, **kwargs)
 
 
+def log_scheduler_errors(fn):
+	"""Decorator for scheduled jobs: record unhandled exceptions in the integration
+	log instead of letting the background task fail silently."""
+
+	@functools.wraps(fn)
+	def wrapper(*args, **kwargs):
+		try:
+			return fn(*args, **kwargs)
+		except Exception as e:
+			create_unicommerce_log(status="Error", exception=e, rollback=True)
+
+	return wrapper
+
+
 @frappe.whitelist()
 def get_unicommerce_document_url(code: str, doctype: str) -> str:
 	if not isinstance(code, str):
 		frappe.throw(frappe._("Invalid Document code"))
+
+	if not frappe.has_permission(doctype, "read"):
+		frappe.throw(frappe._("Not permitted"), frappe.PermissionError)
 
 	site = frappe.db.get_single_value("Unicommerce Settings", "unicommerce_site", cache=True)
 	url = DOCUMENT_URL_FORMAT.get(doctype, "")

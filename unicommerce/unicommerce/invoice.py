@@ -94,6 +94,8 @@ def generate_unicommerce_invoices(
 	           ]
 	        }
 	"""
+	if not frappe.has_permission("Sales Invoice", "create"):
+		frappe.throw(_("Not permitted to generate invoices"), frappe.PermissionError)
 
 	if isinstance(sales_orders, str):
 		sales_orders = json.loads(sales_orders)

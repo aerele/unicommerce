@@ -1,5 +1,4 @@
 import json
-from collections import defaultdict, namedtuple
 from collections.abc import Iterator
 from typing import Any, NewType
 
@@ -7,7 +6,7 @@ import frappe
 from ecommerce_core.controllers.scheduling import need_to_run
 from ecommerce_core.ecommerce_core.doctype.ecommerce_item import ecommerce_item
 from ecommerce_core.utils.taxation import get_dummy_tax_category
-from frappe.utils import add_to_date, flt
+from frappe.utils import flt
 
 from unicommerce.unicommerce.api_client import UnicommerceAPIClient
 from unicommerce.unicommerce.constants import (
@@ -28,11 +27,16 @@ from unicommerce.unicommerce.constants import (
 )
 from unicommerce.unicommerce.customer import sync_customer
 from unicommerce.unicommerce.product import import_product_from_unicommerce
-from unicommerce.unicommerce.utils import create_unicommerce_log, get_unicommerce_date
+from unicommerce.unicommerce.utils import (
+	create_unicommerce_log,
+	get_unicommerce_date,
+	log_scheduler_errors,
+)
 
 UnicommerceOrder = NewType("UnicommerceOrder", dict[str, Any])
 
 
+@log_scheduler_errors
 def sync_new_orders(client: UnicommerceAPIClient = None, force=False):
 	"""This is called from a scheduled job and syncs all new orders from last synced time."""
 	settings = frappe.get_cached_doc(SETTINGS_DOCTYPE)
@@ -294,7 +298,7 @@ def _get_facility_code(line_items) -> str:
 	facility_codes = {item.get("facilityCode") for item in line_items}
 
 	if len(facility_codes) > 1:
-		frappe.throw("Multiple facility codes found in single order")
+		frappe.throw(frappe._("Multiple facility codes found in single order"))
 
 	return next(iter(facility_codes))
 
@@ -319,7 +323,12 @@ def _update_package_info_on_unicommerce(so_code):
 
 		so = frappe.get_doc("Sales Order", so_code)
 		package_type = so.get(PACKAGE_TYPE_FIELD)
-		package_info = frappe.get_doc("Unicommerce Package Type", package_type)
+		package_info = frappe.db.get_value(
+			"Unicommerce Package Type",
+			package_type,
+			["package_type_code", "length", "width", "height"],
+			as_dict=True,
+		)
 
 		updated_so_data = client.get_sales_order(so.get(ORDER_CODE_FIELD))
 		shipping_packages = updated_so_data.get("shippingPackages")

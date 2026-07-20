@@ -2,12 +2,10 @@
 # For license information, please see LICENSE
 
 import json
-from typing import Optional
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.model.mapper import get_mapped_doc
 from frappe.utils import cint
 from frappe.utils.file_manager import save_file
 
@@ -162,6 +160,8 @@ def get_sales_invoice_details(sales_invoice):
 
 @frappe.whitelist()
 def search_packages(search_term: str, channel: str | None = None, shipper: str | None = None):
+	frappe.has_permission("Sales Invoice", "read", throw=True)
+
 	filters = {
 		CHANNEL_ID_FIELD: channel,
 		SHIPPING_PROVIDER_CODE: shipper,
@@ -184,7 +184,9 @@ def search_packages(search_term: str, channel: str | None = None, shipper: str |
 
 
 @frappe.whitelist()
-def get_shipping_package_list(source_name, target_doc=None):
+def get_shipping_package_list(source_name: str, target_doc: str | dict | None = None):
+	frappe.has_permission("Sales Invoice", "read", throw=True)
+
 	if target_doc and isinstance(target_doc, str):
 		target_doc = json.loads(target_doc)
 

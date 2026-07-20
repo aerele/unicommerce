@@ -14,6 +14,7 @@ from unicommerce.unicommerce.constants import (
 	SHIPPING_PACKAGE_CODE_FIELD,
 	SHIPPING_PACKAGE_STATUS_FIELD,
 )
+from unicommerce.unicommerce.utils import log_scheduler_errors
 
 ORDER_STATES = ["PENDING_VERIFICATION", "CREATED", "PROCESSING", "COMPLETE", "CANCELLED"]
 PARTIAL_CANCELLED_STATES = ["PENDING_VERIFICATION", "CREATED", "PROCESSING"]
@@ -46,6 +47,7 @@ ORDER_FINAL_STATES = ["COMPLETE", "CANCELLED"]
 SHIPMENT_FINAL_STATES = ["DELIVERED", "RETURNED"]
 
 
+@log_scheduler_errors
 def update_sales_order_status():
 	settings = frappe.get_cached_doc(SETTINGS_DOCTYPE)
 	if not settings.is_enabled():
@@ -104,6 +106,7 @@ def ignore_pick_list_on_sales_order_cancel(doc, method=None):
 	doc.ignore_linked_doctypes = ignored_links
 
 
+@log_scheduler_errors
 def update_shipping_package_status():
 	"""Periodically update changed shipping package info in ERPNext."""
 	settings = frappe.get_cached_doc(SETTINGS_DOCTYPE)
