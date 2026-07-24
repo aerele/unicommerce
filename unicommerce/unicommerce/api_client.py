@@ -177,6 +177,7 @@ class UnicommerceAPIClient:
 
 		if status and "elements" in search_results:
 			return search_results["elements"]
+		return []
 
 	def get_inventory_snapshot(
 		self, sku_codes: list[str], facility_code: str, updated_since: int = 1430
@@ -431,24 +432,21 @@ class UnicommerceAPIClient:
 		"""Search shipping packages on unicommerce matching specified criterias.
 
 		Ref: https://documentation.unicommerce.com/docs/pos-shippingpackage-search.html"""
-		body = {
-			"statuses": statuses,
-			"channelCode": channel,
-			"updatedSinceInMinutes": updated_since,
-		}
+		body = {"statuses": statuses, "channelCode": channel, "updatedSinceInMinutes": updated_since}
 		extra_headers = {"Facility": facility_code}
 
 		# remove None values.
 		body = {k: v for k, v in body.items() if v is not None}
-
-		search_results, statuses = self.request(
+		search_results, status = self.request(
 			endpoint="/services/rest/v1/oms/shippingPackage/search",
 			body=body,
 			headers=extra_headers,
 		)
-
-		if statuses and "elements" in search_results:
+		if status and "elements" in search_results:
 			return search_results["elements"]
+		else:
+			frappe.log_error("Failed to search shipping packages:", search_results)
+			return []
 
 	def create_import_job(
 		self,
