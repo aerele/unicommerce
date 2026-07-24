@@ -45,6 +45,21 @@ from unicommerce.unicommerce.constants import (
 )
 from unicommerce.unicommerce.utils import create_unicommerce_log
 
+# Attribute check fields on the Unicommerce Batch Group Config child table that drive
+# the GRN batchDetails payload.
+GRN_BATCH_ATTR_FIELDS = (
+	"attr_mrp",
+	"attr_cost",
+	"attr_vendor",
+	"attr_mfd",
+	"attr_expiry_date",
+	"attr_vendor_batch_number",
+	"attr_country_of_origin",
+	"attr_bill_of_entry",
+	"attr_trade_price",
+	"attr_ean",
+)
+
 
 class UnicommerceSettings(SettingController):
 	def is_enabled(self) -> bool:
@@ -125,6 +140,19 @@ class UnicommerceSettings(SettingController):
 
 		if not self.vendor_code:
 			frappe.throw(_("Vendor code required for Auto GRN upload."))
+
+		if not self.batch_group_configs:
+			frappe.throw(_("Add at least one row in GRN Batch Group Attributes for Auto GRN upload."))
+
+		seen_codes = set()
+		for row in self.batch_group_configs:
+			code = (row.batch_group_code or "").strip()
+			if code in seen_codes:
+				frappe.throw(_("Duplicate Batch Group Code {0} in GRN Batch Group Attributes.").format(code))
+			seen_codes.add(code)
+
+			if not any(row.get(field) for field in GRN_BATCH_ATTR_FIELDS):
+				frappe.throw(_("Select at least one attribute for Batch Group Code {0}.").format(code))
 
 		if not frappe.db.exists("Stock Entry Type", GRN_STOCK_ENTRY_TYPE):
 			entry_type = frappe.new_doc("Stock Entry Type")

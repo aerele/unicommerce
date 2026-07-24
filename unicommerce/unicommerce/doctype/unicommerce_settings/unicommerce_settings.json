@@ -38,6 +38,7 @@
   "grn_settings_section",
   "use_stock_entry_for_grn",
   "vendor_code",
+  "batch_group_configs",
   "sync_status_section",
   "last_order_sync",
   "column_break_20",
@@ -251,6 +252,15 @@
    "fieldname": "vendor_code",
    "fieldtype": "Data",
    "label": "Vendor Code"
+  },
+  {
+   "fieldname": "batch_group_configs",
+   "fieldtype": "Table",
+   "label": "GRN Batch Group Attributes",
+   "options": "Unicommerce Batch Group Config",
+   "depends_on": "eval:doc.use_stock_entry_for_grn",
+   "description": "Add a row per Unicommerce Batch Group Code and tick the attributes it requires (must match the batch group in Unicommerce).",
+   "mandatory_depends_on": "eval:doc.use_stock_entry_for_grn"
   },
   {
    "fieldname": "delivery_note_settings_section",
