@@ -4,6 +4,7 @@ import os
 from typing import ClassVar
 
 import frappe
+from frappe.test_runner import make_test_records
 from frappe.tests import IntegrationTestCase, change_settings
 
 from unicommerce.unicommerce.constants import PRODUCT_CATEGORY_FIELD, SETTINGS_DOCTYPE
@@ -75,6 +76,13 @@ class TestCase(IntegrationTestCase):
 		# default warehouse, which the standard erpnext test companies set to a foreign company's
 		# warehouse -> item_defaults company/warehouse mismatch aborts item creation. Clear it.
 		frappe.db.set_default("default_warehouse", "")
+
+		# Several tests look up the "RAINFOREST" channel via get_doc("Unicommerce Channel", ...).
+		# make_test_records inserts it in a savepoint, but Frappe's test runner no longer commits
+		# that savepoint across classes, so without commit=True the channel is gone by the time the
+		# order/invoice tests run and create_order() aborts (returning None). Commit it once here so
+		# every class in the session can rely on it.
+		make_test_records("Unicommerce Channel", commit=True)
 
 	@classmethod
 	def tearDownClass(cls):
