@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "creation": "2026-07-24 16:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "batch_group_code",
+  "attributes_section",
+  "attr_mrp",
+  "attr_cost",
+  "attr_vendor",
+  "column_break_1",
+  "attr_mfd",
+  "attr_expiry_date",
+  "attr_vendor_batch_number",
+  "column_break_2",
+  "attr_country_of_origin",
+  "attr_bill_of_entry",
+  "attr_trade_price",
+  "attr_ean"
+ ],
+ "fields": [
+  {
+   "fieldname": "batch_group_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Batch Group Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "attributes_section",
+   "fieldtype": "Section Break",
+   "label": "Batching Attributes"
+  },
+  {
+   "default": "0",
+   "fieldname": "attr_mrp",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "MRP"
+  },
+  {
+   "default": "0",
+   "fieldname": "attr_cost",
+   "fieldtype": "Check",
+   "label": "Cost"
+  },
+  {
+   "default": "0",
+   "fieldname": "attr_vendor",
+   "fieldtype": "Check",
+   "label": "Vendor",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "attr_mfd",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Manufacturing Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "attr_expiry_date",
+   "fieldtype": "Check",
+   "label": "Expiry Date",
+   "in_list_view": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "attr_vendor_batch_number",
+   "fieldtype": "Check",
+   "label": "Vendor Batch Number",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "attr_country_of_origin",
+   "fieldtype": "Check",
+   "label": "Country Of Origin"
+  },
+  {
+   "default": "0",
+   "fieldname": "attr_bill_of_entry",
+   "fieldtype": "Check",
+   "label": "Bill Of Entry"
+  },
+  {
+   "default": "0",
+   "fieldname": "attr_trade_price",
+   "fieldtype": "Check",
+   "label": "Trade Price"
+  },
+  {
+   "default": "0",
+   "fieldname": "attr_ean",
+   "fieldtype": "Check",
+   "label": "EAN"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-24 16:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "unicommerce",
+ "name": "Unicommerce Batch Group Config",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

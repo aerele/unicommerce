@@ -177,6 +177,7 @@ class UnicommerceAPIClient:
 
 		if status and "elements" in search_results:
 			return search_results["elements"]
+		return []
 
 	def get_inventory_snapshot(
 		self, sku_codes: list[str], facility_code: str, updated_since: int = 1430
@@ -247,6 +248,90 @@ class UnicommerceAPIClient:
 				return item_wise_status, status
 			except Exception:
 				return response, False
+
+	def create_batch_inventory_adjustment(
+		self, inventory_adjustments: list, facility_code: str, vendor_code: str | None = None
+	):
+		"""Create inventory adjustments with batch details (used for GRN).
+
+		ref: https://documentation.unicommerce.com/docs/adjust-inventory-bulk.html
+		"""
+		extra_headers = {"Facility": facility_code}
+
+		settings = frappe.get_cached_doc(SETTINGS_DOCTYPE)
+		if vendor_code is None:
+			vendor_code = settings.vendor_code or "DEFAULT_VENDOR"
+
+		def _str(value):
+			return str(value) if value is not None else None
+
+		# Batch Group Config child field -> (batchDetails key, value getter from the adjustment).
+		attr_map = {
+			"attr_mrp": ("mrp", lambda a: _str(a.get("mrp"))),
+			"attr_cost": ("cost", lambda a: _str(a.get("cost"))),
+			"attr_trade_price": ("tradePrice", lambda a: _str(a.get("tradePrice"))),
+			"attr_mfd": ("mfd", lambda a: a.get("mfd")),
+			"attr_expiry_date": ("expiryDate", lambda a: a.get("expiryDate")),
+			"attr_vendor": ("vendorCode", lambda a: a.get("vendorCode") or vendor_code),
+			"attr_vendor_batch_number": ("vendorBatchNumber", lambda a: a.get("vendorBatchNumber")),
+			"attr_country_of_origin": ("coo", lambda a: a.get("coo")),
+			"attr_bill_of_entry": ("boe", lambda a: a.get("boe")),
+			"attr_ean": ("ean", lambda a: a.get("ean")),
+		}
+
+		# batch group code -> selected (batchDetails key, getter) pairs, resolved once
+		group_attrs = {
+			(row.batch_group_code or "").strip(): [attr_map[f] for f in attr_map if row.get(f)]
+			for row in settings.batch_group_configs
+		}
+
+		prepared_adjustments, skipped = [], []
+		for adjustment in inventory_adjustments:
+			# Each item's batch group decides which attributes go into batchDetails;
+			# no batchCode is sent (Unicommerce generates its own from these details).
+			code = (adjustment.get("batchGroupCode") or "").strip()
+			selected = group_attrs.get(code)
+			if not selected:
+				skipped.append(
+					f"SKU {adjustment.get('itemSKU')}: batch group '{code}' has no attribute config"
+				)
+				continue
+
+			batch_details = {key: getter(adjustment) for key, getter in selected}
+
+			prepared_adjustments.append(
+				{
+					"itemSKU": adjustment["itemSKU"],
+					"quantity": adjustment["quantity"],
+					"shelfCode": adjustment.get("shelfCode", "DEFAULT"),
+					"inventoryType": adjustment.get("inventoryType", "GOOD_INVENTORY"),
+					"adjustmentType": adjustment.get("adjustmentType", "ADD"),
+					"remarks": adjustment.get("remarks"),
+					"facilityCode": facility_code,
+					"batchDetails": batch_details,
+				}
+			)
+
+		if not prepared_adjustments:
+			return {"successful": False, "errors": skipped or ["No configured items to adjust"]}
+
+		response, status = self.request(
+			endpoint="/services/rest/v1/inventory/adjust/bulk",
+			headers=extra_headers,
+			body={"inventoryAdjustments": prepared_adjustments, "forceAllocate": False},
+		)
+
+		if not status:
+			return {
+				"successful": False,
+				"errors": ["API call failed"],
+				"response": response,
+				"skipped": skipped,
+			}
+
+		if skipped and isinstance(response, dict):
+			response.setdefault("skipped", []).extend(skipped)
+		return response
 
 	def create_sales_invoice(
 		self, so_code: str, so_item_codes: list[str], facility_code: str
@@ -431,24 +516,21 @@ class UnicommerceAPIClient:
 		"""Search shipping packages on unicommerce matching specified criterias.
 
 		Ref: https://documentation.unicommerce.com/docs/pos-shippingpackage-search.html"""
-		body = {
-			"statuses": statuses,
-			"channelCode": channel,
-			"updatedSinceInMinutes": updated_since,
-		}
+		body = {"statuses": statuses, "channelCode": channel, "updatedSinceInMinutes": updated_since}
 		extra_headers = {"Facility": facility_code}
 
 		# remove None values.
 		body = {k: v for k, v in body.items() if v is not None}
-
-		search_results, statuses = self.request(
+		search_results, status = self.request(
 			endpoint="/services/rest/v1/oms/shippingPackage/search",
 			body=body,
 			headers=extra_headers,
 		)
-
-		if statuses and "elements" in search_results:
+		if status and "elements" in search_results:
 			return search_results["elements"]
+		else:
+			frappe.log_error("Failed to search shipping packages:", search_results)
+			return []
 
 	def create_import_job(
 		self,

@@ -1,60 +1,15 @@
-from dataclasses import dataclass
-
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate
-from frappe.utils.csvutils import UnicodeWriter
-from frappe.utils.file_manager import save_file
+from frappe.utils import cint, get_datetime
 
 from unicommerce.unicommerce.api_client import UnicommerceAPIClient
 from unicommerce.unicommerce.constants import (
 	GRN_STOCK_ENTRY_TYPE,
+	ITEM_BATCH_GROUP_FIELD,
 	MODULE_NAME,
 	SETTINGS_DOCTYPE,
 )
-from unicommerce.unicommerce.utils import remove_non_alphanumeric_chars
-
-CSV_HEADER_LINE = (
-	"Vendor Code*,Vendor Invoice Number*,Purchase Order Code,Vendor Invoice Date*,Sku"
-	" Code*,Qty*,Item Code,Item Details,Shelf Code,MRP,Unit Price,Manufacturing Date,Expiry date"
-	" as dd/MM/yyyy,Vendor Batch Number\r\n"
-)
-
-
-@dataclass
-class GRNItemRow:
-	vendor_code: str
-	vendor_invoice_number: str
-	invoice_date: str
-	sku: str
-	qty: int
-	item_code: str
-	purchase_order: str = ""
-	manufacturing_date: str = ""
-	expiry_date: str = ""
-	batch_number: str = ""
-	shelf_code: str = ""
-	item_details: str = ""
-	mrp: str = 0.0
-	unit_price: str = 0.0
-
-	def get_ordered_fields(self):
-		return [
-			self.vendor_code,
-			self.vendor_invoice_number,
-			self.purchase_order,
-			self.invoice_date,
-			self.sku,
-			self.qty,
-			self.item_code,
-			self.item_details,
-			self.shelf_code,
-			self.mrp,
-			self.unit_price,
-			self.manufacturing_date,
-			self.expiry_date,
-			self.batch_number,
-		]
+from unicommerce.unicommerce.utils import create_unicommerce_log
 
 
 def is_unicommerce_grn(stock_entry) -> bool:
@@ -109,107 +64,148 @@ def upload_grn(doc, method=None):
 	if not is_unicommerce_grn(stock_entry):
 		return
 
-	settings = frappe.get_doc(SETTINGS_DOCTYPE)
-	facility_code = get_facility_code(stock_entry, settings)
-	csv_file = _prepare_grn_import_csv(doc)
+	frappe.enqueue(
+		"unicommerce.unicommerce.grn.process_grn_background",
+		queue="short",
+		stock_entry_name=stock_entry.name,
+		enqueue_after_commit=True,
+	)
 
-	response = create_auto_grn_import(csv_file, facility_code=facility_code)
+	frappe.msgprint(_("GRN processing has been queued. You will be notified once it's completed."))
 
-	if not response or not response.successful:
-		frappe.throw(
-			_("GRN upload failed, Unicommerce reported errors.<br>{}").format(
-				"<br>".join(response.errors if response else [])
+
+def process_grn_background(stock_entry_name: str):
+	"""Process GRN in background - creates inventory adjustment in Unicommerce"""
+	try:
+		stock_entry = frappe.get_doc("Stock Entry", stock_entry_name)
+
+		if not is_unicommerce_grn(stock_entry):
+			create_unicommerce_log(
+				status="Error",
+				message=f"Stock Entry {stock_entry_name} is not a valid GRN",
+				make_new=True,
 			)
+			return
+
+		settings = frappe.get_doc(SETTINGS_DOCTYPE)
+		facility_code = get_facility_code(stock_entry, settings)
+
+		inventory_adjustments = _prepare_inventory_adjustments(stock_entry)
+		response = UnicommerceAPIClient().create_batch_inventory_adjustment(
+			inventory_adjustments, facility_code
 		)
 
-	errors = response.errors
-	if response.successful and not errors:
-		msg = _("Successully queued GRN import to Unicommerce.")
-		msg += _("Confirm the status on Import Log in Uniware.")
-		frappe.msgprint(msg, title="Success")
-	elif response.successful and errors:
-		frappe.msgprint("Partial success, unicommerce reported errors:<br>{}".format("<br>".join(errors)))
+		def _log_failure(message):
+			create_unicommerce_log(
+				status="Failure",
+				message=message,
+				request_data=inventory_adjustments,
+				response_data=response,
+				make_new=True,
+			)
+
+		if not response or not response.get("successful"):
+			_log_failure(f"GRN inventory adjustment failed for {stock_entry_name}")
+			return
+
+		# Item-level errors (e.g. batch attributes not matching the batch group) plus
+		# items skipped because their batch group has no attribute config.
+		failed_items = [
+			f"SKU {r.get('itemSKU')}: {r.get('message', 'Unknown error')}"
+			for r in response.get("inventoryAdjustmentResponses", [])
+			if not r.get("successful")
+		]
+		failed_items += response.get("skipped", [])
+
+		if failed_items:
+			_log_failure(f"GRN partial failure for {stock_entry_name}: {', '.join(failed_items)}")
+		else:
+			stock_entry.add_comment("Comment", "GRN successfully synced to Unicommerce")
+
+	except Exception as e:
+		create_unicommerce_log(
+			status="Error",
+			message=f"GRN processing error for {stock_entry_name}",
+			exception=e,
+			rollback=True,
+			make_new=True,
+		)
 
 
-def _prepare_grn_import_csv(stock_entry) -> str:
-	"""Prepare CSV file in Unicommerce auto grn api format and attach it to Stock Entry
-	returns: filename of generated csv.
+def _prepare_inventory_adjustments(stock_entry) -> list:
+	"""Prepare inventory adjustment data directly from stock entry items
+	Uses batched database queries for optimal performance
+	returns: list of inventory adjustment dictionaries
 	"""
 
-	rows = []
-	vendor_code = frappe.db.get_single_value(SETTINGS_DOCTYPE, "vendor_code")
+	vendor_invoice_number = stock_entry.name
+	item_codes = [item.item_code for item in stock_entry.items]
+	batch_numbers = [item.batch_no for item in stock_entry.items if item.batch_no]
+
+	# Batch query: Get all SKUs at once
+	sku_map = frappe._dict()
+	if item_codes:
+		sku_data = frappe.db.get_all(
+			"Ecommerce Item",
+			filters={"erpnext_item_code": ("in", item_codes), "integration": MODULE_NAME},
+			fields=["erpnext_item_code", "integration_item_code"],
+		)
+		sku_map = {row.erpnext_item_code: row.integration_item_code for row in sku_data}
+
+	# Batch query: Get all batch details at once
+	batch_details_map = frappe._dict()
+	if batch_numbers:
+		batch_data = frappe.db.get_all(
+			"Batch",
+			filters={"name": ("in", batch_numbers)},
+			fields=["name", "manufacturing_date", "expiry_date"],
+		)
+		batch_details_map = {row.name: row for row in batch_data}
+
+	# Batch query: Get MRP, cost, country of origin and batch group code per item
+	item_map = frappe._dict()
+	if item_codes:
+		item_data = frappe.db.get_values(
+			"Item",
+			{"name": ("in", item_codes)},
+			["name", "standard_rate", "valuation_rate", "country_of_origin", ITEM_BATCH_GROUP_FIELD],
+			as_dict=True,
+		)
+		item_map = {row.name: row for row in item_data}
+
+	inventory_adjustments = []
 
 	for item in stock_entry.items:
-		price = frappe.db.get_value("Item", item.item_code, "standard_rate") or ""
-		invoice_date = _get_unicommerce_format_date(stock_entry.posting_date)
-
-		batch_details = frappe.db.get_value(
-			"Batch", item.batch_no, fieldname=["manufacturing_date", "expiry_date"], as_dict=True
-		)
-		manufacturing_date = _get_unicommerce_format_date(
-			batch_details.manufacturing_date if batch_details else getdate()
-		)
-		expiry_date = _get_unicommerce_format_date(
-			batch_details.expiry_date if batch_details else getdate("2099-01-01")
-		)
-
-		sku = frappe.db.get_value(
-			"Ecommerce Item",
-			{"erpnext_item_code": item.item_code, "integration": MODULE_NAME},
-			"integration_item_code",
-		)
+		sku = sku_map.get(item.item_code)
 		if not sku:
 			frappe.throw(_("Item {} does not have associated Unicommerce SKU.").format(item.item_code))
 
-		row = GRNItemRow(
-			vendor_code=vendor_code,
-			vendor_invoice_number=stock_entry.name,
-			invoice_date=invoice_date,
-			sku=sku,
-			qty=cint(item.qty),  # implicitly round down
-			item_code=sku,
-			manufacturing_date=manufacturing_date,
-			expiry_date=expiry_date,
-			batch_number=item.batch_no,
-			mrp=price,
-			unit_price=price,
+		batch = batch_details_map.get(item.batch_no) if item.batch_no else None
+		item_detail = item_map.get(item.item_code) or frappe._dict()
+
+		inventory_adjustments.append(
+			{
+				"itemSKU": sku,
+				"quantity": cint(item.qty),
+				"remarks": f"Vendor Invoice: {vendor_invoice_number}",
+				"batchGroupCode": item_detail.get(ITEM_BATCH_GROUP_FIELD),
+				"vendorBatchNumber": item.batch_no or "",
+				"mrp": item_detail.standard_rate,
+				"cost": item_detail.valuation_rate,
+				"coo": item_detail.country_of_origin,
+				"mfd": _to_epoch_millis(batch.manufacturing_date) if batch else None,
+				"expiryDate": _to_epoch_millis(batch.expiry_date) if batch else None,
+			}
 		)
-		rows.append(row)
 
-	file_name = remove_non_alphanumeric_chars(stock_entry.name)
-	saved_file = save_file(
-		fname=f"GRN-{file_name}.csv",
-		content=_get_csv_content(rows),
-		dt=stock_entry.doctype,
-		dn=stock_entry.name,
-	)
-	return saved_file.file_name
+	return inventory_adjustments
 
 
-def _get_csv_content(rows: list[GRNItemRow]) -> bytes:
-	writer = UnicodeWriter()
-
-	for row in rows:
-		writer.writerow(row.get_ordered_fields())
-
-	csv_content = CSV_HEADER_LINE + writer.getvalue()
-	return csv_content.encode("utf-8")
-
-
-def _get_unicommerce_format_date(date) -> str:
-	if date:
-		return getdate(date).strftime("%d/%m/%Y")
-	return ""
-
-
-def create_auto_grn_import(csv_filename: str, facility_code: str, client=None):
-	"""Create new import job for Auto GRN items"""
-	if client is None:
-		client = UnicommerceAPIClient()
-	resp = client.create_import_job(
-		job_name="Auto GRN Items", csv_filename=csv_filename, facility_code=facility_code
-	)
-	return resp
+def _to_epoch_millis(value) -> int | None:
+	"""Convert a date/datetime to a Unix epoch timestamp in milliseconds."""
+	if not value:
+		return None
+	return int(get_datetime(value).timestamp() * 1000)
 
 
 def prevent_grn_cancel(doc, method=None):
