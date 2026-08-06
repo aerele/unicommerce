@@ -161,7 +161,7 @@ def _log_invoice_generation(sales_orders, failed_orders):
 	failure_message = "\n".join(
 		[
 			f"generate invoices: {percent_success:.3%} invoices successful\n",
-			f"Failred orders = {', '.join(failed_orders)}",
+			f"Failed orders = {', '.join(failed_orders)}",
 			f"Requested orders = {', '.join(sales_orders)}",
 		]
 	)
