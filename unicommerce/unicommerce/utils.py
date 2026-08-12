@@ -1,9 +1,9 @@
 import datetime
-import functools
 
 import frappe
-from ecommerce_core.ecommerce_core.doctype.ecommerce_integration_log.ecommerce_integration_log import (
-	create_log,
+from ecommerce_core.utils.integration_log import (
+	create_integration_log,
+	make_scheduler_error_logger,
 )
 
 from unicommerce.unicommerce.constants import MODULE_NAME
@@ -24,21 +24,10 @@ DOCUMENT_URL_FORMAT = {
 
 
 def create_unicommerce_log(**kwargs):
-	return create_log(module_def=MODULE_NAME, **kwargs)
+	return create_integration_log(MODULE_NAME, **kwargs)
 
 
-def log_scheduler_errors(fn):
-	"""Decorator for scheduled jobs: record unhandled exceptions in the integration
-	log instead of letting the background task fail silently."""
-
-	@functools.wraps(fn)
-	def wrapper(*args, **kwargs):
-		try:
-			return fn(*args, **kwargs)
-		except Exception as e:
-			create_unicommerce_log(status="Error", exception=e, rollback=True)
-
-	return wrapper
+log_scheduler_errors = make_scheduler_error_logger(MODULE_NAME)
 
 
 @frappe.whitelist()

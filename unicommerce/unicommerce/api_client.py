@@ -164,7 +164,7 @@ class UnicommerceAPIClient:
 		body = {
 			"status": status,
 			"channel": channel,
-			"facility_codes": facility_codes,
+			"facilityCodes": facility_codes,
 			"fromDate": _utc_timeformat(from_date) if from_date else None,
 			"toDate": _utc_timeformat(to_date) if to_date else None,
 			"updatedSinceInMinutes": updated_since,

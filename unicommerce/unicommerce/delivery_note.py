@@ -69,13 +69,18 @@ def create_delivery_note(so, sales_invoice):
 	# Create the delivery note
 	from erpnext.selling.doctype.sales_order.mapper import make_delivery_note
 
-	res = make_delivery_note(source_name=so.name)
-	res.unicommerce_order_code = sales_invoice.unicommerce_order_code
-	res.unicommerce_shipment_id = sales_invoice.unicommerce_shipping_package_code
-	res.save()
-	res.submit()
-	log = create_unicommerce_log(method="create_delevery_note", make_new=True)
-	frappe.flags.request_id = log.name
-	create_unicommerce_log(status="Success")
-	frappe.flags.request_id = None
-	return res
+	try:
+		res = make_delivery_note(source_name=so.name)
+		res.unicommerce_order_code = sales_invoice.unicommerce_order_code
+		res.unicommerce_shipment_id = sales_invoice.unicommerce_shipping_package_code
+		res.save()
+		res.submit()
+		log = create_unicommerce_log(method="create_delivery_note", make_new=True)
+		frappe.flags.request_id = log.name
+		create_unicommerce_log(
+			status="Success", message=f"Delivery Note {res.name} created for Sales Order {so.name}"
+		)
+		frappe.flags.request_id = None
+		return res
+	except Exception as e:
+		create_unicommerce_log(status=f"Error: {so.name}", exception=e, rollback=True)

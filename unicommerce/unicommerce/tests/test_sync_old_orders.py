@@ -164,7 +164,7 @@ class TestRunSyncOrchestration(IntegrationTestCase):
 			{"code": "EXIST", "channel": "SHOPIFY"},  # already synced -> skipped
 		]
 
-		def fake_fetch(client, fr, to, status, summary):
+		def fake_fetch(client, fr, to, status, summary, facility_codes=None):
 			summary["total_reported"] = len(orders)
 			yield orders  # a single page holding every order
 

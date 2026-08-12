@@ -5,6 +5,7 @@ from typing import Any, NewType
 import frappe
 from ecommerce_core.controllers.scheduling import need_to_run
 from ecommerce_core.ecommerce_core.doctype.ecommerce_item import ecommerce_item
+from ecommerce_core.utils.integration_log import run_integration_job
 from ecommerce_core.utils.taxation import get_dummy_tax_category
 from frappe.utils import flt
 
@@ -134,28 +135,33 @@ def create_order(payload: UnicommerceOrder, request_id: str | None = None, clien
 		so = frappe.get_doc("Sales Order", existing_so)
 		return so
 
-	# If a sales order already exists, then every time it's executed
-	if request_id is None:
-		log = create_unicommerce_log(
-			method="unicommerce.unicommerce.order.create_order", request_data=payload
-		)
-		request_id = log.name
+	return run_integration_job(
+		MODULE_NAME,
+		_create_order_job,
+		payload,
+		client=client,
+		request_id=request_id,
+		method="unicommerce.unicommerce.order.create_order",
+		request_data=payload,
+		set_user="Administrator",
+		success_status=None,
+	)
+
+
+def _create_order_job(payload: UnicommerceOrder, client=None) -> None:
+	order = payload
 
 	if client is None:
 		client = UnicommerceAPIClient()
 
-	frappe.set_user("Administrator")
-	frappe.flags.request_id = request_id
 	try:
 		_sync_order_items(order, client=client)
 		customer = sync_customer(order)
 		order = _create_order(order, customer)
 	except Exception as e:
 		create_unicommerce_log(status="Error", exception=e, rollback=True)
-		frappe.flags.request_id = None
 	else:
 		create_unicommerce_log(status="Success")
-		frappe.flags.request_id = None
 		return order
 
 
@@ -226,7 +232,11 @@ def _get_line_items(
 	so_items = []
 
 	for item in line_items:
-		if not is_cancelled and item.get("statusCode") == "CANCELLED":
+		item_status = item.get("statusCode")
+
+		# Only skip cancelled items when the ORDER is still active (partial cancellation).
+		# For fully cancelled orders, keep ALL items so the Sales Order can be created
+		if item_status == "CANCELLED" and not is_cancelled:
 			continue
 
 		item_code = ecommerce_item.get_erpnext_item_code(

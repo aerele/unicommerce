@@ -8,6 +8,7 @@ import requests
 from ecommerce_core.ecommerce_core.doctype.ecommerce_item import ecommerce_item
 from erpnext.selling.doctype.sales_order.mapper import make_sales_invoice
 from frappe import _
+from frappe.query_builder.functions import Sum
 from frappe.utils import cint, flt, nowdate
 from frappe.utils.file_manager import save_file
 
@@ -161,7 +162,7 @@ def _log_invoice_generation(sales_orders, failed_orders):
 	failure_message = "\n".join(
 		[
 			f"generate invoices: {percent_success:.3%} invoices successful\n",
-			f"Failred orders = {', '.join(failed_orders)}",
+			f"Failed orders = {', '.join(failed_orders)}",
 			f"Requested orders = {', '.join(sales_orders)}",
 		]
 	)
@@ -206,16 +207,17 @@ def _validate_wh_allocation(warehouse_allocation: WHAllocation):
 		return
 
 	so_codes = list(warehouse_allocation.keys())
-	so_item_data = frappe.db.sql(
-		"""
-			select item_code, sum(qty) as qty, parent as sales_order
-			from `tabSales Order Item`
-			where
-				parent in %s
-			group by parent, item_code""",
-		(so_codes,),
-		as_dict=True,
-	)
+	so_item = frappe.qb.DocType("Sales Order Item")
+	so_item_data = (
+		frappe.qb.from_(so_item)
+		.select(
+			so_item.item_code,
+			Sum(so_item.qty).as_("qty"),
+			so_item.parent.as_("sales_order"),
+		)
+		.where(so_item.parent.isin(so_codes))
+		.groupby(so_item.parent, so_item.item_code)
+	).run(as_dict=True)
 
 	expected_item_qty = {}
 	for item in so_item_data:

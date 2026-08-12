@@ -89,6 +89,9 @@ def _run_sync(settings, from_date, to_date, client=None):
 		frappe.get_all("Unicommerce Channel", filters={"enabled": 1}, pluck="channel_id", limit=0)
 	)
 
+	# Get enabled facility codes from settings
+	enabled_facilities = [wh.unicommerce_facility_code for wh in settings.warehouse_mapping if wh.enabled]
+
 	summary = {
 		"range": f"{from_date} -> {to_date}",
 		"total_reported": None,
@@ -96,11 +99,14 @@ def _run_sync(settings, from_date, to_date, client=None):
 		"created": 0,
 		"skipped_existing": 0,
 		"off_channel": 0,
+		"off_facility": 0,
 		"failed": 0,
 		"incomplete": False,
 	}
 
-	for page in _fetch_orders_in_range(client, from_date, to_date, status, summary):
+	for page in _fetch_orders_in_range(
+		client, from_date, to_date, status, summary, facility_codes=enabled_facilities
+	):
 		existing = set(
 			frappe.get_all(
 				"Sales Order",
@@ -115,6 +121,12 @@ def _run_sync(settings, from_date, to_date, client=None):
 
 			if order_summary.get("channel") not in enabled_channels:
 				summary["off_channel"] += 1
+				continue
+
+			# Facility filtering as safety net (double-check even though API filters)
+			facility_code = order_summary.get("facilityCode")
+			if facility_code and facility_code not in enabled_facilities:
+				summary["off_facility"] += 1
 				continue
 
 			# If the SO already exists with not completed status, will be skipped.
@@ -153,7 +165,7 @@ def _run_sync(settings, from_date, to_date, client=None):
 	return summary
 
 
-def _fetch_orders_in_range(client, from_date, to_date, status, summary):
+def _fetch_orders_in_range(client, from_date, to_date, status, summary, facility_codes=None):
 	"""Yield each page of UNIQUE orders (each with a valid code) in the date range."""
 	# Full days: start of From .. end of To. No padding, so the whole range fits the 31-day cap.
 	base_body = {
@@ -163,6 +175,10 @@ def _fetch_orders_in_range(client, from_date, to_date, status, summary):
 	}
 	if status:
 		base_body["status"] = status
+
+	# Add facility codes filter to API request
+	if facility_codes:
+		base_body["facilityCodes"] = facility_codes
 
 	display_start = 0
 	is_first_page = True
@@ -260,6 +276,7 @@ def _log_summary(summary):
 		f"  Created (new)           : {summary['created']}\n"
 		f"  Skipped (already synced): {summary['skipped_existing']}\n"
 		f"  Skipped (off-channel)   : {summary['off_channel']}\n"
+		f"  Skipped (off-facility)  : {summary.get('off_facility', 0)}\n"
 		f"  Failed                  : {summary['failed']}"
 	)
 	create_unicommerce_log(status=status, make_new=True, message=message)
