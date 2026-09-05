@@ -1,166 +1,160 @@
 <div align="center">
-<img src="unicommerce/public/images/unicommerce.svg" alt="Unicommerce" height="80">
-<h1>Unicommerce for ERPNext</h1>
-<p>A standalone integration that connects ERPNext with Unicommerce Uniware.</p>
+    <a href="https://github.com/aerele/unicommerce">
+	<img src="./unicommerce/public/images/unicommerce.svg" alt="Unicommerce Logo" height="80px" width="80px"/>
+    </a>
+    <h2>Unicommerce for ERPNext</h2>
+    <div align="center">
+        <p>Sell across every marketplace. Run the back office in ERPNext.</p>
+    </div>
 
-<p>
-<a href="https://integrations.frappe.cloud/integrations/ecommerce-integration/unicommerce/overview">Documentation</a> ·
-<a href="https://github.com/aerele/unicommerce/issues">Report an Issue</a> ·
-<a href="https://github.com/aerele/unicommerce/pulls">Contribute</a>
-</p>
-<p>
-<a href="https://github.com/aerele/unicommerce/actions/workflows/ci.yml"><img src="https://github.com/aerele/unicommerce/actions/workflows/ci.yml/badge.svg?branch=develop" alt="CI"></a>
-<a href="https://github.com/aerele/unicommerce/actions/workflows/linters.yml"><img src="https://github.com/aerele/unicommerce/actions/workflows/linters.yml/badge.svg?branch=develop" alt="Linters"></a>
-<a href="license.txt"><img src="https://img.shields.io/badge/License-GPL_v3-blue.svg" alt="License: GPL v3"></a>
-</p>
+[![CI](https://github.com/aerele/unicommerce/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/aerele/unicommerce/actions/workflows/ci.yml)
+[![Linters](https://github.com/aerele/unicommerce/actions/workflows/linters.yml/badge.svg?branch=develop)](https://github.com/aerele/unicommerce/actions/workflows/linters.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-blue.svg)](license.txt)
+
 </div>
 
-## Overview
+<div align="center">
+	<img src="./unicommerce/public/images/hero_image.png" alt="Unicommerce Hero Image"/>
+</div>
 
-Unicommerce for ERPNext connects ERPNext with marketplaces managed through
-[Unicommerce Uniware](https://unicommerce.com/). It brings catalogue, inventory,
-order, invoice, fulfilment, cancellation, and return workflows into ERPNext while
-preserving Unicommerce identifiers on the relevant transactions.
+<div align="center">
+	<a href="https://integrations.frappe.cloud/integrations/ecommerce-integration/unicommerce/overview">Documentation</a>
+	-
+	<a href="https://github.com/aerele/unicommerce/issues">Report a Bug</a>
+	-
+	<a href="https://github.com/aerele/unicommerce/pulls">Contribute</a>
+</div>
 
-This app depends on [`ecommerce_core`](https://github.com/aerele/ecommerce-core),
-which provides shared ecommerce item mapping, integration logs, scheduling, and
-inventory utilities.
+## Unicommerce
 
-## Key Features
+A standalone integration that connects ERPNext with Unicommerce Uniware.
+
+### Motivation
+
+[Unicommerce Uniware](https://unicommerce.com/) is a multichannel order and
+inventory platform, giving sellers a single console for every marketplace they
+sell on, their own storefront, and the warehouses that serve them. Running it
+alongside ERPNext means the same catalogue, inventory, and orders are maintained
+in two places.
+
+Unicommerce for ERPNext removes that duplication. It brings catalogue, inventory,
+order, invoice, fulfillment, cancellation, and return workflows into ERPNext, and
+publishes catalogue and stock updates back to every connected channel.
+Unicommerce identifiers are preserved on the relevant transactions, so records in
+both systems remain traceable to one another.
+
+### Key Features
 
 | Workflow | Direction | What the app does |
 | --- | --- | --- |
-| Item catalogue | ERPNext → Unicommerce | Uploads selected ERPNext Items and updates existing Unicommerce SKUs. Items missing while importing an order can also be created in ERPNext. |
-| Inventory | ERPNext → Unicommerce | Pushes whole-number stock levels from mapped ERPNext Warehouses to Unicommerce facilities. |
-| Sales orders | Unicommerce → ERPNext | Imports new or date-range historical orders from enabled channels and creates the required customers and items. |
-| Invoices and fulfilment | Two-way workflow | Imports completed invoices or generates invoices and shipping labels from ERPNext, depending on the configured workflow. |
-| Delivery notes | Unicommerce → ERPNext | Optionally creates Delivery Notes when shipments are processed in Unicommerce. |
-| Status, cancellations, and returns | Unicommerce → ERPNext | Updates order and package status, handles full or partial cancellations, and creates draft return Credit Notes for RTO and customer-initiated returns. |
-| Shipment manifests | ERPNext → Unicommerce | Creates and closes manifests, marks packages as dispatched, and attaches the manifest PDF in ERPNext. |
-| Goods receipt (GRN) | ERPNext → Unicommerce | Optionally uploads Material Transfer Stock Entries through the Unicommerce Auto GRN API, including configured batch attributes. |
+| Item catalogue | ERPNext → Unicommerce | Uploads selected Items as SKUs and updates existing ones. Items missing during an order import are created in ERPNext. |
+| Inventory | ERPNext → Unicommerce | Pushes whole-number stock from mapped Warehouses to Unicommerce facilities. |
+| Sales orders | Unicommerce → ERPNext | Imports new and date-range historical orders from enabled channels, creating the customers and items they need. |
+| Invoices and fulfillment | Two-way | Imports completed invoices, or generates invoices and shipping labels from ERPNext. |
+| Delivery notes | Unicommerce → ERPNext | Optionally creates Delivery Notes when shipments are processed. |
+| Status, cancellations, returns | Unicommerce → ERPNext | Updates order and package status, handles full and partial cancellations, and drafts Credit Notes for RTO and customer returns. |
+| Shipment manifests | ERPNext → Unicommerce | Creates and closes manifests, marks packages dispatched, and attaches the manifest PDF. |
+| Goods receipt (GRN) | ERPNext → Unicommerce | Optionally uploads Material Transfer Stock Entries through the Auto GRN API, with batch attributes. |
 
-Synchronization runs through Frappe background jobs. Results and failures are
-recorded in **Ecommerce Integration Log** for monitoring and retry.
+Synchronization runs as background jobs. Every request, failure, and retry is
+recorded in Ecommerce Integration Log.
+
+<details open>
+
+<summary>More</summary>
+	<img src="./unicommerce/public/images/settings.png" alt="Unicommerce Settings"/>
+	<img src="./unicommerce/public/images/channel.png" alt="Unicommerce Channel"/>
+</details>
+
+### Under the Hood
+
+- [**Frappe Framework**](https://github.com/frappe/frappe): A full-stack web application framework written in Python and JavaScript, providing the database layer, background job queue, and REST API this integration runs on.
+
+- [**ERPNext**](https://github.com/frappe/erpnext): The accounting, stock, and selling modules that Unicommerce orders, invoices, and shipments are written into.
+
+- [**Ecommerce Core**](https://github.com/aerele/ecommerce-core): The shared item mapping, integration log, and inventory utilities used across Aerele's ecommerce integrations.
 
 ## Compatibility
 
-| Component | Supported version |
+| Component | Version |
 | --- | --- |
-| Python | 3.10 or later |
-| Frappe Framework | `>=16.0.0-dev, <=17.0.0-dev` |
-| ERPNext | `>=16.0.0-dev, <=17.0.0-dev` |
-| Unicommerce | `develop` |
-| Ecommerce Core | Matching `develop` branch |
+| Python | 3.14 |
+| Frappe Framework | v16 to v17 (`develop`) |
+| ERPNext | v16 to v17 (`develop`) |
+| Ecommerce Core | `develop` |
 
 ## Installation
 
-You need an existing Bench with Frappe Framework and ERPNext. From the bench
-directory, get the dependency and this app:
+From an existing bench with Frappe Framework and ERPNext:
 
 ```bash
 bench get-app ecommerce_core https://github.com/aerele/ecommerce-core.git --branch develop
 bench get-app unicommerce https://github.com/aerele/unicommerce.git --branch develop
-```
 
-Install both apps on your site in dependency order:
-
-```bash
 bench --site <site-name> install-app ecommerce_core
 bench --site <site-name> install-app unicommerce
 ```
 
-Replace `<site-name>` with your site, for example `erp.example.com`.
+Install `ecommerce_core` first, as `unicommerce` depends on it.
 
-## Configuration
+## Setup
 
-Complete the ERPNext setup wizard and ensure that the scheduler and background
-workers are running before enabling synchronization.
+Complete the ERPNext setup wizard and confirm that the scheduler and background
+workers are running, then work through the Unicommerce workspace in order.
 
-### 1. Connect Unicommerce
+**1. Connect**
 
-Open **Unicommerce Settings** from the Desk search bar, then:
+In **Unicommerce Settings**, select **Enable Unicommerce** and enter your
+Unicommerce site hostname without `https://`, along with your username, password,
+and client ID. Set the default Customer Group and the Sales Order and Sales
+Invoice naming series, then save. The access token, refresh token, and expiry are
+populated on a successful connection. If they are not, verify the credentials and
+ask Unicommerce whether your server IP requires allowlisting.
 
-1. Select **Enable Unicommerce**.
-2. Enter the Unicommerce site hostname without `https://`, your username,
-   password, and client ID.
-3. Set the default Customer Group and Sales Order and Sales Invoice naming
-   series.
-4. Save the document. Successful authentication populates the read-only access
-   token, refresh token, token type, and expiry fields.
+**2. Map warehouses**
 
-If authentication fails, verify the credentials and ask Unicommerce support
-whether the ERPNext server IP must be allowlisted.
+Add one **Warehouse Mapping** row per Unicommerce facility, mapping the facility
+code to an ERPNext Warehouse and setting the Return Warehouse used for credit
+notes along with the Company and Dispatch Addresses. Mappings must be one to one.
+Quantities are sent as whole numbers to the `DEFAULT` shelf.
 
-### 2. Map warehouses
+**3. Add channels**
 
-In **Warehouse Mapping**, add one row for each Unicommerce facility:
+Create a **Unicommerce Channel** for each channel ID you want to import, with its
+Company, Warehouse, Customer Group, Cost Center, tax and charge accounts, payment
+settings, and naming series. Only enabled channels are imported, so enable a
+channel once its accounting defaults are complete.
 
-- Map the facility code to an ERPNext Warehouse.
-- Select the Return Warehouse used for returns and credit notes.
-- Set Company and Dispatch Addresses where required.
-- Enable each mapping that should participate in synchronization.
+**4. Enable the workflows you need**
 
-Mappings must be unique and one-to-one. Inventory in ERPNext is treated as the
-source of truth. The integration sends whole-number quantities to the `DEFAULT`
-shelf in Unicommerce.
+| To do this | Enable |
+| --- | --- |
+| Upload items | **Upload new items to Unicommerce**, a Default Item Group, and **Sync Item with Unicommerce** on each Item |
+| Push stock | **Inventory sync**, with a frequency and enabled warehouse mappings |
+| Let Unicommerce fulfill | **Only Sync Completed Orders** |
+| Fulfill from ERPNext | **Only Sync Completed Orders** left disabled, so orders arrive unbilled. Invoices and labels are then generated from a Sales Order or Pick List, and dispatched on a Shipment Manifest. |
+| Import Delivery Notes | **Import Delivery Notes from Unicommerce on Shipment** |
+| Upload GRNs | **Use Stock Entry for GRN**, the vendor code, and each batch group's attributes |
 
-### 3. Configure sales channels
-
-Create one **Unicommerce Channel** document for each channel ID to import. Set
-the Company, default Warehouse, Customer Group, Cost Center, tax and charge
-accounts, payment settings, naming series, and shipping responsibility. Enable
-the channel only after all mandatory accounting defaults are complete.
-
-Only orders belonging to enabled channels are imported. Facility mappings select
-the ERPNext Warehouse used for their line items and inventory updates.
-
-### 4. Enable the required workflows
-
-- **Item sync:** Enable **Upload new items to Unicommerce**, set a Default Item
-  Group, and select **Sync Item with Unicommerce** on each Item to upload.
-- **Inventory sync:** Enable it, choose a sync frequency, and enable the required
-  warehouse mappings.
-- **Completed-order workflow:** Enable **Only Sync Completed Orders** to import
-  orders and their invoices after processing is complete in Unicommerce.
-- **ERPNext fulfilment workflow:** Leave the completed-order option disabled,
-  then generate invoices from a synced Sales Order or Pick List and create a
-  Unicommerce Shipment Manifest before dispatch.
-- **Delivery Notes:** Enable **Import Delivery Notes from Unicommerce on
-  Shipment** when fulfilment happens in Unicommerce.
-- **Auto GRN:** Enable **Use Stock Entry for GRN**, enter the vendor code, and
-  configure every Unicommerce batch group and its required attributes.
-
-For field mappings and illustrated workflows, see the
-[Unicommerce integration guide](https://integrations.frappe.cloud/integrations/ecommerce-integration/unicommerce/overview).
+Field mappings and illustrated workflows are documented in the
+[integration guide](https://integrations.frappe.cloud/integrations/ecommerce-integration/unicommerce/overview).
 
 ## Operations
 
-- Use **Last Order Sync** and **Last Inventory Sync** in Unicommerce Settings to
-  verify scheduler activity.
-- Review **Ecommerce Integration Log** for request details, failures, and retries.
-- Do not change an ERPNext Item Code after it has been mapped to a Unicommerce
-  SKU; Unicommerce SKU codes are immutable.
-- Configure the ERPNext scheduler and long workers. Order and inventory jobs are
-  checked every five minutes and run according to their configured frequencies;
-  item uploads and status updates run hourly.
+- **Last Order Sync** and **Last Inventory Sync** in Unicommerce Settings confirm that the scheduler is active.
+- **Ecommerce Integration Log** holds request payloads, failures, and retries.
+- Orders, inventory, and delivery notes are checked every five minutes. Item uploads and status updates run hourly. Both the scheduler and the long worker queue must be running.
+- Do not change an ERPNext Item Code once it has been mapped, as Unicommerce SKU codes are immutable.
 
 ## Development
-
-Set up a Frappe bench with matching `develop` branches, install the apps as shown
-above, and enable developer mode on the test site:
 
 ```bash
 bench --site <site-name> set-config developer_mode 1
 bench --site <site-name> migrate
-```
-
-Run the server tests from the bench directory:
-
-```bash
 bench --site <site-name> run-tests --app unicommerce
 ```
 
-Install and run the repository checks before opening a pull request:
+Run the repository checks before opening a pull request:
 
 ```bash
 cd apps/unicommerce
@@ -170,11 +164,23 @@ pre-commit run --all-files
 
 ## Contributing
 
-Contributions are welcome. Please open an
-[issue](https://github.com/aerele/unicommerce/issues) for bugs or proposed
-changes, keep pull requests focused, add tests for changed behaviour, and target
-the `develop` branch.
+Issues and pull requests are welcome. Please keep pull requests focused, add
+tests for changed behaviour, and target the `develop` branch.
+
+- [Report a Bug or Request a Feature](https://github.com/aerele/unicommerce/issues)
+- [Open a Pull Request](https://github.com/aerele/unicommerce/pulls)
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0](license.txt).
+[GNU General Public License v3.0](license.txt)
+
+<br>
+<br>
+<div align="center">
+	<a href="https://aerele.in">
+		<picture>
+			<source media="(prefers-color-scheme: dark)" srcset="./unicommerce/public/images/aerele-dark.png">
+			<img src="./unicommerce/public/images/aerele.png" alt="Aerele Technologies" height="32"/>
+		</picture>
+	</a>
+</div>
