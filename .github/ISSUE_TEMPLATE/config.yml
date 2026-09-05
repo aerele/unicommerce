@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Community Forum
+    url: https://discuss.frappe.io
+    about: For general QnA, discussions and community help.
+  - name: Integration Guide
+    url: https://integrations.frappe.cloud/integrations/ecommerce-integration/unicommerce/overview
+    about: Setup steps, field mappings and illustrated workflows.

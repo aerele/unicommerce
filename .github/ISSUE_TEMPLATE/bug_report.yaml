@@ -1,0 +1,82 @@
+name: Bug Report
+description: Report a bug encountered while using Unicommerce for ERPNext
+labels: ["bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome to the Unicommerce for ERPNext issue tracker! Before creating an issue, please heed the following:
+
+        1. This tracker should only be used to report bugs and request features / enhancements to this app
+            - For questions and general support, checkout the [integration guide](https://integrations.frappe.cloud/integrations/ecommerce-integration/unicommerce/overview) or use the [forum](https://discuss.frappe.io)
+            - For issues in ERPNext or the Frappe Framework itself, report them on their own trackers.
+        2. When making a bug report, make sure you provide all required information. The easier it is for
+           maintainers to reproduce, the faster it'll be fixed.
+        3. If you think you know what the reason for the bug is, share it with us. Maybe put in a PR 😉
+        4. Remove your Unicommerce username, password, client ID, access tokens, and any customer data
+           from screenshots, log output, and API payloads before attaching them.
+
+  - type: textarea
+    id: bug-info
+    attributes:
+      label: Information about bug
+      description: Also tell us, what did you expect to happen?
+      placeholder: Please provide as much information as possible.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: workflow
+    attributes:
+      label: Workflow
+      description: Select the affected workflow.
+      multiple: true
+      options:
+        - item catalogue
+        - inventory
+        - sales orders
+        - invoices and fulfillment
+        - delivery notes
+        - order and package status
+        - cancellations and returns
+        - shipment manifests
+        - goods receipt (GRN)
+        - settings and authentication
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: exact-version
+    attributes:
+      label: Version
+      description: Share exact version numbers of Frappe, ERPNext, Ecommerce Core and this app.
+      placeholder: |
+        Frappe version -
+        ERPNext version -
+        Ecommerce Core version -
+        Unicommerce version -
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Installation method
+      options:
+        - docker
+        - easy-install
+        - manual install
+        - FrappeCloud
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output / Stack trace / Full Error Message.
+      description: |
+        Please copy and paste any relevant log output. The Ecommerce Integration Log entry for the
+        failed sync is usually the most useful. This will be automatically formatted.
+      render: shell
