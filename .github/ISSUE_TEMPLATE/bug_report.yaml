@@ -80,3 +80,8 @@ body:
         Please copy and paste any relevant log output. The Ecommerce Integration Log entry for the
         failed sync is usually the most useful. This will be automatically formatted.
       render: shell
+
+  - type: markdown
+    attributes:
+      value: |
+        By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/aerele/unicommerce/blob/develop/CODE_OF_CONDUCT.md)

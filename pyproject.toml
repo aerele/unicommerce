@@ -2,9 +2,9 @@
 name = "unicommerce"
 description = "Standalone Unicommerce integration for ERPNext"
 authors = [
-    { name = "Aerele", email = "developers@aerele.in" }
+    { name = "Aerele", email = "integrations-support@aerele.in" }
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.14,<3.15"
 readme = "./README.md"
 dynamic = ["version"]
 dependencies = []
@@ -18,7 +18,7 @@ build-backend = "flit_core.buildapi"
 
 [tool.ruff]
 line-length = 110
-target-version = "py310"
+# target-version is inferred from project.requires-python
 
 [tool.ruff.lint]
 select = ["F", "E", "W", "I", "UP", "B", "RUF"]
@@ -33,3 +33,4 @@ docstring-code-format = true
 [tool.bench.frappe-dependencies]
 frappe = ">=16.0.0-dev,<=17.0.0-dev"
 erpnext = ">=16.0.0-dev,<=17.0.0-dev"
+ecommerce_core = ">=0.0.1"
