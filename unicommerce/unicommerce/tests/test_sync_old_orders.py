@@ -234,6 +234,9 @@ class TestEnqueueGuards(IntegrationTestCase):
 			patch(f"{SOF}.frappe.only_for"),
 			patch(f"{SOF}.frappe.cache", return_value=cache),
 			patch(f"{SOF}.frappe.enqueue", return_value=enqueue_ret) as enqueue,
+			# v17's frappe._ resolves the site language via the (mocked) cache,
+			# returning a MagicMock that frappe.throw's HTML stripper rejects.
+			patch(f"{SOF}.frappe._", side_effect=lambda s: s),
 		):
 			result = sof.enqueue_sync_old_orders("2020-01-01", "2020-01-31")
 		return result, enqueue
@@ -264,6 +267,7 @@ class TestEnqueueGuards(IntegrationTestCase):
 			patch(f"{SOF}.frappe.only_for"),
 			patch(f"{SOF}.frappe.cache", return_value=cache),
 			patch(f"{SOF}.frappe.enqueue") as enqueue,
+			patch(f"{SOF}.frappe._", side_effect=lambda s: s),
 			self.assertRaises(frappe.ValidationError),
 		):
 			sof.enqueue_sync_old_orders("2020-02-01", "2020-01-01")  # inverted range
