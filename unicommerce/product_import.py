@@ -1,6 +1,6 @@
 """Product Sync adapter for the shared Ecommerce Core page.
 
-Registered through the ``ecommerce_product_sync_providers`` hook (see hooks.py).
+Registered through the ``ecommerce_product_import_providers`` hook (see hooks.py).
 A thin facade over the existing Unicommerce item import: the page's listing and
 search use the tenant-level itemType search API, syncing reuses
 ``import_product_from_unicommerce``.
@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import frappe
 from ecommerce_core.ecommerce_core.doctype.ecommerce_item import ecommerce_item
-from ecommerce_core.product_sync.adapter import ProductSyncAdapter
+from ecommerce_core.product_import.adapter import ProductImportAdapter
 from frappe import _
 from frappe.utils import cint
 
@@ -19,8 +19,8 @@ from unicommerce.unicommerce.constants import MODULE_NAME, SETTINGS_DOCTYPE
 from unicommerce.unicommerce.product import import_product_from_unicommerce
 
 
-class UnicommerceProductSyncAdapter(ProductSyncAdapter):
-	"""Contract implementation for ``ecommerce_core.product_sync``."""
+class UnicommerceProductImportAdapter(ProductImportAdapter):
+	"""Contract implementation for ``ecommerce_core.product_import``."""
 
 	def __init__(self, client: UnicommerceAPIClient | None = None):
 		self._client = client
@@ -79,7 +79,7 @@ class UnicommerceProductSyncAdapter(ProductSyncAdapter):
 			"item_code": product_id,
 		}
 
-	def _search(self, keyword: str | None, start: int, length: int) -> dict:
+	def _search(self, keyword: str | None = None, start: int = 0, length: int = 20) -> dict:
 		response = self.client.search_item_types(keyword=keyword, start=start, length=length)
 		if response is None:
 			# The client already logged the API error with the request details.

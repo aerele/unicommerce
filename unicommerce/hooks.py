@@ -14,12 +14,22 @@ app_home = "/desk/unicommerce"
 
 # Shared Product Sync page (ecommerce_core)
 # "integration" is the Ecommerce Item.integration value (MODULE_NAME) and matches the Module Def.
-ecommerce_product_sync_providers = [
+ecommerce_product_import_providers = [
 	{
 		"integration": "unicommerce",
 		"label": "Unicommerce",
 		"settings_doctype": "Unicommerce Settings",
-		"adapter": "unicommerce.product_sync.UnicommerceProductSyncAdapter",
+		"adapter": "unicommerce.product_import.UnicommerceProductImportAdapter",
+	}
+]
+
+# Ecommerce Core dashboard provider registration (same integration value).
+ecommerce_dashboard_providers = [
+	{
+		"integration": "unicommerce",
+		"label": "Unicommerce",
+		"settings_doctype": "Unicommerce Settings",
+		"adapter": "unicommerce.unicommerce.dashboard.UnicommerceDashboardAdapter",
 	}
 ]
 

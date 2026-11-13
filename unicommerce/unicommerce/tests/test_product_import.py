@@ -4,7 +4,7 @@ import frappe
 import responses
 from ecommerce_core.ecommerce_core.doctype.ecommerce_item import ecommerce_item
 
-from unicommerce.product_sync import UnicommerceProductSyncAdapter
+from unicommerce.product_sync import UnicommerceProductImportAdapter
 from unicommerce.unicommerce.constants import MODULE_NAME
 from unicommerce.unicommerce.tests.test_client import TestCaseApiClient
 
@@ -20,11 +20,11 @@ SEARCH_PAGE = {
 }
 
 
-class TestUnicommerceProductSyncAdapter(TestCaseApiClient):
+class TestUnicommerceProductImportAdapter(TestCaseApiClient):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.adapter = UnicommerceProductSyncAdapter(client=cls.client)
+		cls.adapter = UnicommerceProductImportAdapter(client=cls.client)
 
 	def search_mock(self, body=SEARCH_PAGE, **kwargs):
 		return self.responses.add(responses.POST, SEARCH_URL, status=200, json=body, **kwargs)
