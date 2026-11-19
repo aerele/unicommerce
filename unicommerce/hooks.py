@@ -23,6 +23,16 @@ ecommerce_product_import_providers = [
 	}
 ]
 
+# Ecommerce Core dashboard provider registration (same integration value).
+ecommerce_dashboard_providers = [
+	{
+		"integration": "unicommerce",
+		"label": "Unicommerce",
+		"settings_doctype": "Unicommerce Settings",
+		"adapter": "unicommerce.unicommerce.dashboard.UnicommerceDashboardAdapter",
+	}
+]
+
 # Shown on Desk home (same pattern as ERPNext / India Compliance)
 add_to_apps_screen = [
 	{
