@@ -87,13 +87,17 @@ class UnicommerceSettings(SettingController):
 			setup_custom_fields(update=False)
 
 	def renew_tokens(self, save=True):
+		renewed = False
 		if now_datetime() >= get_datetime(self.expires_on):
 			try:
 				self.update_tokens()
+				renewed = True
 			except Exception as e:
 				create_unicommerce_log(status="Error", message="Failed to authenticate with Unicommerce")
 				raise e
-		if save:
+		# Only save when tokens actually changed. Saving on every client init bumps
+		# `modified` and causes "modified after you have opened it" errors on the open form.
+		if save and renewed:
 			self.flags.ignore_custom_fields = True
 			self.flags.ignore_permissions = True
 			self.save()

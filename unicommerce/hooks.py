@@ -12,6 +12,27 @@ required_apps = ["frappe/erpnext", "ecommerce_core"]
 app_logo_url = "/assets/unicommerce/images/unicommerce.svg"
 app_home = "/desk/unicommerce"
 
+# Shared Product Sync page (ecommerce_core)
+# integration = the Ecommerce Item.integration value (MODULE_NAME).
+ecommerce_product_import_providers = [
+	{
+		"integration": "unicommerce",
+		"label": "Unicommerce",
+		"settings_doctype": "Unicommerce Settings",
+		"adapter": "unicommerce.product_import.UnicommerceProductImportAdapter",
+	}
+]
+
+# Ecommerce Core dashboard provider registration (same integration value).
+ecommerce_dashboard_providers = [
+	{
+		"integration": "unicommerce",
+		"label": "Unicommerce",
+		"settings_doctype": "Unicommerce Settings",
+		"adapter": "unicommerce.unicommerce.dashboard.UnicommerceDashboardAdapter",
+	}
+]
+
 # Shown on Desk home (same pattern as ERPNext / India Compliance)
 add_to_apps_screen = [
 	{
