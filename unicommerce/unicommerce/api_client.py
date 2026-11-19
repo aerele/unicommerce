@@ -124,6 +124,37 @@ class UnicommerceAPIClient:
 		if status:
 			return item
 
+	def search_item_types(
+		self,
+		keyword: str | None = None,
+		start: int = 0,
+		length: int = 20,
+	) -> JsonDict | None:
+		"""Search the item type catalog, one page at a time.
+
+		Returns the raw response (``elements`` and ``totalRecords`` when the API
+		supplies it), or None when the request fails.
+
+		ref: https://documentation.unicommerce.com/docs/search-itemtype.html
+		"""
+
+		body: JsonDict = {
+			"keyword": keyword,
+			"searchOptions": {
+				"displayStart": start,
+				"displayLength": length,
+				"getCount": True,
+			},
+		}
+
+		# remove None values.
+		body = {k: v for k, v in body.items() if v is not None}
+
+		response, status = self.request(endpoint="/services/rest/v1/product/itemType/search", body=body)
+
+		if status:
+			return response
+
 	def create_update_item(self, item_dict: JsonDict, update=False) -> tuple[JsonDict, bool]:
 		"""Create/update item on unicommerce.
 
